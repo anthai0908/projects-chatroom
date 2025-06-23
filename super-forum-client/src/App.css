@@ -1,0 +1,185 @@
+:root{
+  --min-screen-height: 1000px;
+  --border: solid 0.1em var(--border-color);
+  --border-color: white;
+  --input-border-color: #e6ebf1;
+  --point-color: rgb(54,69,79);
+  --sm-med-font-size: 1.1em;
+  --panel-border-thickness: 0.05em;
+  --panel-color: white;
+  --proceed-color: rgb(81, 142, 132);
+
+}
+.screen-root-container {
+  margin: 0 auto;
+  max-width: 100%;
+  margin-bottom: 2em;
+  border: var(--border);
+  border-radius: 0.3em;
+}
+.form-buttons {
+  margin-top: 0.25em;
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  grid-auto-flow: column;
+}
+.form-buttons-sm{
+  grid-template-columns: 1;
+}
+.form-btn-left{
+  grid-column: 1;
+}
+
+.title-bar {
+  margin-bottom: 0.4em;
+  padding-bottom: 0.25em !important;
+  border-bottom: 3px, solid var(--input-border-color);
+}
+input[type = "text"],
+input[type = "password"],
+select{
+  width: 100%;
+  height: 35px;
+  padding: 20px, 20px;
+  margin: 20px, 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: medium;
+}
+.navigation {
+  grid-area: nav;
+  background-color: cyan;
+  border-radius: 10px;
+}
+.sidebar {
+  min-height: var(--min-screen-height);
+  grid-area: sidebar;
+  background-color: aliceblue;
+  border-radius: 10px;
+}
+.leftmenu {
+  grid-area: leftmenu;
+  background-color: skyblue;
+  border-radius: 10px;
+}
+.content {
+  min-height: var(--min-screen-height);
+  grid-area: content;
+  background-color: blanchedalmond;
+  border-radius: 10px;
+  width: 100%
+}
+.rightmenu {
+  grid-area: rightmenu;
+  background-color: coral;
+  border-radius: 10px;
+}
+.modal-menu {
+  position: fixed;
+  min-width: 550px;
+  left: 50%;
+  top: 4.5em;
+  transform: translate(-50%);
+  border: var(--border);
+  border-radius: 5px;
+  background-color: white;
+  padding: 1em 1em 1em 1em;
+  z-index: 1000px;
+}
+.action-btn {
+  background-color: skyblue;
+  color: white;
+  padding: 14px 15px;
+  margin: 8px 0;
+  border: solid 1px skyblue; /* Removed separate border-color */
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-btn:disabled {
+  background-color: skyblue;
+  color: gray;
+  cursor: not-allowed;
+  border-color: gray; /* Optional: Matches disabled look */
+}
+
+
+.cancel-btn{
+  background-color: white;
+  color: gray;
+  padding: 14px 15px;
+  margin: 8px 0;
+  border: solid 1px gray;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.cancel-btn:hover{
+  background-color: rgb(4, 2, 35);
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: solid 1px gray;
+  border-radius: 4px;
+  cursor: pointer;
+  border-color: rgb(9, 7, 60);
+}
+.points-icon {
+  margin-top: 0.5em;
+}
+.panel {
+  display: flex;
+  flex-direction: row;
+  border: solid var(--panel-border-thickness) var(--border-color);
+  border-radius: 0.07em;
+  background-color: var(--panel-color);;
+}
+.icon-lg{
+  margin-left: 0.5em;
+  width: 2.23em;
+}
+
+.field {
+  width: 100%;
+  height: 56px;
+  border-radius: 4px;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.3);
+  transition: 0.3s all;
+}
+.field:hover {
+  background-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0px 4px 20px 0px rgba(0,0,0,0.05);
+}
+  @media screen and (orientation: portrait)  and (max-width: 768px) {
+
+  .navigation {
+    grid-area: nav;
+    background-color: cyan;
+    border-radius: 10px;
+    width: 100%;  /* Ensure it takes the full width */
+  }
+
+  /* Main content should also span full width */
+  .content {
+    grid-area: content;
+    background-color: blanchedalmond;
+    border-radius: 10px;
+    width: 100%;  /* Ensure it stretches to full width */
+    min-height: var(--min-screen-height);
+  }
+  .modal-menu{
+    min-width: 60px;
+    left: 0.5em;
+    right: 0.5em;
+    top: 3.5em;
+    transform: translate(0%);
+  }
+  .form-buttons {
+    grid-template-columns: 1;
+  }
+  .form-btn-left{
+    grid-column: 1;
+  }
+}

@@ -1,0 +1,10 @@
+.menu-name{
+    margin-left: 0.5em;
+    cursor: pointer;
+}
+
+.menu-name:hover{
+    margin-left: 0.5em;
+    cursor: pointer;
+    color: darkgray
+}

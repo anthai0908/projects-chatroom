@@ -1,0 +1,8 @@
+.error-container {
+    margin: 0 auto;  /* Centers the div horizontally */
+    max-width: 500px; /* Ensures it doesn't stretch too much */
+    padding: 1rem;  /* Adds spacing inside the div */
+    background-color: bisque;
+    text-align: center; /* Ensures text is centered */
+    border-radius: 10px; /* Optional: smooth rounded corners */
+}

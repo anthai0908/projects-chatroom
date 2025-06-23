@@ -1,0 +1,25 @@
+.userprofile-content-container {
+    margin-top: 1em;
+    margin-left: 0.75em;
+    margin-right: 0.75em;
+}
+
+.userprofile-password {
+    width: 50%;
+}
+
+.userprofile-link{
+    overflow-y: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.userprofile-posting{
+    margin-top: 1em;
+}
+
+@media screen and (orientation: potrait) and (max-width: 768px){
+    .userprofile-password{
+        width: 100%;
+    }
+}
