@@ -1,0 +1,39 @@
+{
+  "name": "super-forum-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node-dev --respawn src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "anthai0908",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@as-integrations/express4": "^1.1.0",
+    "apollo-server-express": "^3.13.0",
+    "bcryptjs": "^3.0.2",
+    "class-validator": "^0.14.1",
+    "connect-redis": "^8.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "graph-tools": "^0.1.2",
+    "graphql": "^16.11.0",
+    "graphql-middleware": "^6.1.35",
+    "ioredis": "^5.6.0",
+    "pg": "^8.14.1",
+    "typeorm": "^0.3.21"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.1",
+    "@types/ioredis": "^4.28.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
+  }
+}

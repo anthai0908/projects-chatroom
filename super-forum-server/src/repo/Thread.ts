@@ -1,0 +1,76 @@
+import { Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    OneToMany,
+ } from "typeorm";
+import { Length } from "class-validator";
+import { User } from "./User";
+import {ThreadItem} from "./ThreadItem";
+import {ThreadCategory} from "./ThreadCategory";
+import { ThreadPoint } from "./ThreadPoint";
+import { Auditable } from "./Auditable";
+
+@Entity({name: "Threads"})
+export class Thread extends Auditable{
+    @PrimaryGeneratedColumn({
+        name: "Id", 
+        type: "bigint"
+    })
+    id!: string;
+
+    @Column({
+        name: "Views",
+        type: "int",
+        default: 0,
+        nullable: false
+    })
+    views!: number;
+
+    @Column({
+        name: "IsDisabled",
+        type: "boolean",
+        default: false,
+        nullable: false,
+    })
+    isDisabled!: boolean;
+    @Column({
+        name: "Points",
+        type: "int",
+        default: 0,
+        nullable: false
+
+    })
+    points!: number;
+
+    @Column({
+        name: "Title",
+        type: "varchar",
+        length: 150,
+        nullable: false,
+    })
+    @Length(5,150)
+    title!: string;
+
+    @Column({
+        name: "Body",
+        type: "varchar",
+        length: 2500,
+        nullable: true,
+    })
+    @Length(20, 2500)
+    body!: string;
+
+    @ManyToOne(()=>User, (user: User)=> user.threads)
+    user!: User;
+
+    @OneToMany(() => ThreadItem, (threadItem) => threadItem.thread)
+    threadItems!: ThreadItem[];
+
+    @OneToMany(() => ThreadPoint, (threadPoints) =>threadPoints.thread)
+    threadPoints!: ThreadPoint[];
+
+    @ManyToOne(()=>ThreadCategory, (category) => category.threads)
+    category!: ThreadCategory;
+}
+
