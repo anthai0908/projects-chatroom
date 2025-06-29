@@ -20,6 +20,7 @@ const typeDefs = gql`
         }
     type Thread {
         id: ID!
+        body: String!
         views: Int!
         isDisabled: Boolean!
         title: String!
@@ -35,6 +36,7 @@ const typeDefs = gql`
         threads: [Thread!]}
     union ThreadArrayResult = ThreadArray | EntityResult
     union ThreadResult = Thread | EntityResult
+    union UserResult = User | EntityResult
     type ThreadItem {
         id: ID!
         views: Int!
@@ -60,7 +62,11 @@ const typeDefs = gql`
     type Query {
         getThreadById(id: ID!): ThreadResult
         getThreadsByCategoryId(categoryId: ID!): ThreadArrayResult
+        getThreadsLatest: ThreadArrayResult!
+        getAllCategories: [ThreadCategory!]
+        me: UserResult!
         }
+    
     type Mutation {
         createThread (
             userId: ID!
@@ -70,7 +76,11 @@ const typeDefs = gql`
         
         login(
             userName: String!
-            password: String!) : String!            
+            password: String!) : String!
+        
+        logout(
+            userName: String!
+        ) : String!
         register(
             email: String!
             userName: String!

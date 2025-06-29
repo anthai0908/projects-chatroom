@@ -1,3 +1,7 @@
 .category{
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.3rem;
+    bottom: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }

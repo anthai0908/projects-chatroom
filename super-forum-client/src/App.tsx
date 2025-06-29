@@ -29,7 +29,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<RenderHome/>} />
-      <Route path ="/categorythreads/:categoryId" element ={<RenderHome/>}/>
+      <Route path ="/categoryThreads/:categoryId" element ={<RenderHome/>}/>
       <Route path = "/thread/:id" element = {<RenderThread/>}/>
       <Route path = "/userprofile/:id" element = {<RenderUserProfile/>}/>
     </Routes>

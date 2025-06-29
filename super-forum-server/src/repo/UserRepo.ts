@@ -78,7 +78,25 @@ export const login = async (
 const userNotFound = (userName: string) => {
     return `User with username ${userName} not found.`
 }
-
+export const me = async (id: string) : Promise<UserResult> =>{
+    const user = await AppDataSource.getRepository(User).findOne({
+        where : {id: id},
+        relations : ["threads", "threads.threadItems"],
+    });
+    if(!user){
+        return {
+            messages : ["User not found"],
+        };
+    }
+    if(!user.confirmed){
+        return {
+            messages : ["User has not confirmed their registration email yet"],
+        }
+    };
+    return {
+        user: user,
+    };
+}
 export const logout = async (userName: string) : Promise<string> => {
     const userRepository = AppDataSource.getRepository(User);
     const user = userRepository.findOne({

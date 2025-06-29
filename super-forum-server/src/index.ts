@@ -26,6 +26,12 @@ declare module "express-session"{
 }
 const main= async ()=> {
 const app = express();
+app.use(
+  cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL,
+  })
+)
 const router = express.Router();
 await AppDataSource.initialize();
 console.log("Successfully connected to database")
@@ -173,10 +179,10 @@ const apolloServer = new ApolloServer<GqlContext>({
 await apolloServer.start();
 app.use(
   '/graphql',
-  cors(),
   bodyParser.json(),
   expressMiddleware(apolloServer, {
-    context: async({req, res}) : Promise<GqlContext> => ({req, res})
+
+    context: async({req, res}) : Promise<GqlContext> => ({req, res}),
   })
 );
 

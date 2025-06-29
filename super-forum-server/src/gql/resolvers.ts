@@ -1,12 +1,15 @@
 import {IResolvers} from "@graphql-tools/utils";
 import { QueryArrayResult, QueryOneResult } from "../repo/QueryArrayResult";
-import { createThread, getThreadById, getThreadsByCategoryId } from "../repo/ThreadRepo";
-import { login, register, UserResult } from "../repo/UserRepo";
+import { createThread, getThreadById, getThreadsByCategoryId, getThreadsLatest} from "../repo/ThreadRepo";
+import { login, logout, me, register, UserResult } from "../repo/UserRepo";
 import { Thread } from "../repo/Thread";
 import { updateThreadPoint } from "../repo/ThreadPointRepo";
 import GqlContext from "./GqlContext";
 import "express-session"
-
+import { User } from "../repo/User";
+import { ThreadCategory } from "../repo/ThreadCategory";
+import { getAllCategories } from "../repo/ThreadCategoryRepo";
+const STANDARD_ERROR = "An error has occured";
 declare module "express-session"{
     interface SessionData{
         userid: string | undefined,
@@ -16,6 +19,14 @@ interface EntityResult {
         messages: Array<string>,
     };
 const resolvers : IResolvers = {
+    UserResult : {
+        __resolveType(obj: any){
+            if(obj.messages){
+                return "EntityResult";
+            }
+            return "User";
+        }
+    },
     ThreadResult: {
         __resolveType(obj: any){
             if(obj.messages){
@@ -73,9 +84,9 @@ const resolvers : IResolvers = {
                     args.categoryId,
                 );
                 if(threads.entities){
-                    return  {
-                        threads : threads.entities
-                    }
+                    return {
+                        threads: threads.entities
+                    } ;
                 }
                 return {
                     messages: threads.messages? threads.messages : ["An error has occured "]
@@ -84,7 +95,71 @@ const resolvers : IResolvers = {
             catch(ex){
                 throw ex;
             }
+        },
+
+        getAllCategories: async(
+            _: any,
+        ) : Promise<Array<ThreadCategory>|EntityResult>=> {
+            let result : QueryArrayResult<ThreadCategory>;
+            try{
+                result = await getAllCategories();
+                console.log("categories is: ", result)
+                if(result.entities){
+                    return result.entities;
+                }
+                else{
+                    return {
+                        messages: result.messages? result.messages : [STANDARD_ERROR],
+                    }
+                }
+           }
+           catch(ex){
+            throw ex;
+           }
+        },
+       getThreadsLatest : async() : Promise<{threads: Array<Thread>} | EntityResult> => {
+            let threads : QueryArrayResult<Thread>;
+            try{
+                threads = await getThreadsLatest();
+                if(threads.entities){
+                    return {
+                        threads: threads.entities,
+                    }
+                }
+                return {
+                    messages: threads.messages? threads.messages : [STANDARD_ERROR],
+                }
+            }
+            catch(ex){
+                throw(ex);
+            }    
+       },
+        me : async(
+            _: any,
+            __: any,
+            context: GqlContext,
+        ): Promise<User | EntityResult>=>{
+            let user: UserResult;
+            console.log("session is: ", context.req.session);
+            try{
+                if (!context.req.session?.userid){
+                    return {
+                        messages: ["User not logged in"],
+                    };
+                }
+                user = await me(context.req.session?.userid);
+                if(user && user.user){
+                    return user.user;
+                }
+                return {
+                    messages: user.messages? user.messages : ["An error has occured"]
+                }    
+            } 
+            catch(ex){
+                    throw(ex);
+                }
         }
+            
     },
     Mutation: {
         register : async (
@@ -131,6 +206,31 @@ const resolvers : IResolvers = {
                     return `Login successful for userId ${context.req.session.userid}.`;
                 }
                 return user && user.messages? user.messages[0] : "An error has occurred";
+            }
+            catch(ex){
+                throw ex;
+            }
+        },
+
+        logout : async(
+            _: any, 
+            args : {
+                userName: string
+            },
+            context: GqlContext,
+        ) : Promise<string> => {
+            try {
+                let result = await logout(
+                    args.userName,
+                );
+                context.req.session?.destroy((err: any) =>{
+                    if(err){
+                        console.log("destroy session failed");
+                        return;
+                    }
+                    console.log("session destroyed", context.req.session?.userid)
+                })
+                return result;
             }
             catch(ex){
                 throw ex;

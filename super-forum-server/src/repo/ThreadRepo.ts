@@ -113,5 +113,22 @@ export const getThreadsByCategoryId = async (
     };
   }
 };
+
+export const  getThreadsLatest = async () : Promise<QueryArrayResult<Thread>> =>{
+            const threadRepo = AppDataSource.getRepository(Thread);
+            const threads = await threadRepo.createQueryBuilder("thread").leftJoinAndSelect("thread.category", "category")
+                                                                         .leftJoinAndSelect("thread.threadItems", "threadItems")
+                                                                         .orderBy("thread.createdOn", "DESC")
+                                                                         .take(10)
+                                                                         .getMany();
+            if(!threads || threads.length === 0 ){
+                return {
+                    messages: ['No thread found.'],
+                };
+            }
+            return {
+                entities: threads,
+            }
+        };
     
 
