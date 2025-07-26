@@ -62,11 +62,12 @@ const initialValue: Descendant[] = [
   
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
-interface RichEditorProps {
+class RichEditorProps {
   existingBody?: string;
+  readOnly?: boolean;
 }
 
-const RichEditor: FC<RichEditorProps> = ({ existingBody }) => {
+const RichEditor: FC<RichEditorProps> = ({ existingBody, readOnly = false}) => {
   const [value, setValue] = useState<Descendant[]>(initialValue);
   const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
   const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, []);
@@ -106,6 +107,7 @@ const RichEditor: FC<RichEditorProps> = ({ existingBody }) => {
                   }
               }
           }}
+          readOnly = {readOnly}
           />
       </Slate>
   )

@@ -13,6 +13,7 @@ const typeDefs = gql`
         confirmed: Boolean!
         isDisabled: Boolean!
         threads: [Thread!]
+        threadItems: [ThreadItem!]
         createdBy: String!
         createdOn: Date!
         lastModifiedBy: String!
@@ -21,6 +22,7 @@ const typeDefs = gql`
     type Thread {
         id: ID!
         body: String!
+        points: Int!
         views: Int!
         isDisabled: Boolean!
         title: String!
@@ -39,6 +41,7 @@ const typeDefs = gql`
     union UserResult = User | EntityResult
     type ThreadItem {
         id: ID!
+        points: Int!
         views: Int!
         isDisabled: Boolean!
         body: String!
@@ -75,7 +78,7 @@ const typeDefs = gql`
             body: String!) : EntityResult
         
         login(
-            userName: String!
+            userName: String!,
             password: String!) : String!
         
         logout(
@@ -86,8 +89,12 @@ const typeDefs = gql`
             userName: String!
             password: String!
         ) : String!
-        updateThreadPoint(userId: ID!, threadId: ID!,  increment: Boolean!) : String!
+        updateThreadPoint( threadId: ID!,  increment: Boolean!) : String!
+        updateThreadItemPoint( threadId: ID!, increment: Boolean!) : String!
+        changePassword(newPassword: String!) : String!
         }
+
+        
         
         
     `;

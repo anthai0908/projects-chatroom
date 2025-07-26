@@ -10,7 +10,12 @@ import { Link } from "react-router-dom";
 import ThreadItem from "../../../models/ThreadItem";
 import { useSelector } from "react-redux";
 import Thread from "../../../models/Thread";
-
+import { gql, useMutation } from "@apollo/client";
+const changePassword = gql`
+mutation changePassword($newPassword: String!){
+    changePassword(newPassword: $newPassword)
+}
+`
 const UserProfile = () => {
     const [
         {
@@ -27,43 +32,50 @@ const UserProfile = () => {
     const user = useSelector((state: Appstate) => state.user);
     const [thread, setThreads] = useState<JSX.Element | undefined>();
     const [threadItems, setThreadItems] = useState<JSX.Element | undefined>();
-
+    const [execChangePassword] = useMutation(changePassword);
     useEffect(()=>{
         console.log("user", user);
         if(user){
             dispatch({
                 type: "userName",
-                payload: user.username,
+                payload: user.userName,
             });
-            getUserThreads(user.id).then((items)=>{
-                const threadItemsInThreadList : Array<ThreadItem> = [];
-                const threadList = items.map((thr: Thread) =>{
-                    for(let i = 0; i <thr.threadItems.length; i++){
-                        threadItemsInThreadList.push(thr.threadItems[i])
-                    }
-                    return (
-                        <li key = {`user-th-${thr.id}`}>
-                            <Link to = {`/thread${thr.id}`} className ="userprofile-link">
-                            {thr.title}
-                            </Link>
-                        </li>
-                    );
-                });
-                setThreads(<ul>{threadList}</ul>);
-
-                const threadItemList = threadItemsInThreadList.map((ti: ThreadItem) =>{
-                    return(
-                        <li key = {`user-th-${ti.threadId}`}>
-                            <Link to = {`thread/${ti.threadId}`} className = "userporfile-link">
-                            {ti.body}
-                            </Link>
-                        </li>
-                    )
-                });
-                setThreadItems(<ul>{threadItemList}</ul>);
-            })
+            const threadList = user.threads?.map((thr: Thread) =>{
+                return (
+                    <li key = {`user-th-${thr.id}`}>
+                        <Link to = {`/thread/${thr.id}`} className ="userprofile-link">
+                        {thr.title}
+                        </Link>
+                    </li>
+                );
+            });
+            setThreads(!user.threads || user.threads.length ===0 ? undefined : <ul>{threadList}</ul>);
+            const threadItemList = user.threadItems?.map((ti: ThreadItem) =>{
+                return(
+                    <li key = {`user-th-${ti.threadId}`}>
+                        <Link to = {`/thread/${ti.threadId}`} className = "userporfile-link">
+                        {ti.body.length < 40? ti.body : ti.body.substring(0, 40) + "..."};
+                        </Link>
+                    </li>
+                )
+            });
+            setThreadItems(<ul>{threadItemList}</ul>);
         }
     }, [user])
+    const onClickChangePassword = async(
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
+        e.preventDefault();
+        const {data: changePasswordData} = await execChangePassword({
+            variables : {
+                newPassword: password
+            }
+        });
+        dispatch({
+            type: "resultMsg",
+            payload: changePasswordData? changePasswordData.changePassword : ""
+        });
+    };
     return (
         <div className="screen-root-container">
             <div className="thread-nav-container">
@@ -82,7 +94,7 @@ const UserProfile = () => {
                         dispatch={dispatch} 
                         password= {password}
                         passwordConfirm={passwordConfirm}/>
-                        <button className ="action-btn" disabled = {isSubmitDisabled}>
+                        <button className ="action-btn" disabled = {isSubmitDisabled} onClick={onClickChangePassword}>
                         Change Password
                         </button>
                     </div>

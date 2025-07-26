@@ -5,34 +5,34 @@ import userReducer from "./common/UserReducer";
 import { allowSubmit } from "./common/Helper";
 import { useDispatch } from "react-redux";
 import { UserProfileSetType } from "../../store/user/Reducer";
-
+import { useMutation, gql } from "@apollo/client";
+import { Me } from "../../hooks/useRefreshReduxMe";
+import UseRefreshReduxMe from "../../hooks/useRefreshReduxMe";
+const LoginMutation = gql`
+    mutation Login($userName: String!, $password: String!){
+        login(userName: $userName, password: $password)
+    }
+`;
 const Login : FC<ModalProps> = ({isOpen, onClickToggle}) => {
+    const [execLogin] = useMutation(LoginMutation, {
+        refetchQueries: [
+            {
+                query: Me,
+            },
+        ],
+    })
     const [{userName, password, resultMsg, isSubmitDisabled}, dispatch] = useReducer(userReducer, {
-        userName: "",
-        password: "",
+        userName: "test1",
+        password: "Test123!@#",
         resultMsg: "",
-        isSubmitDisabled: true
+        isSubmitDisabled: false
     });
-    const reduxDispatch = useDispatch();
     
-    /*
-    useEffect(() => {
-        try {
-            reduxDispatch({
-                type: UserProfileSetType,
-                payload: {
-                    id: 1,
-                    username: "testUser",
-                }
-            });
-            console.log("Dispatched successfully!");
-        } catch (error) {
-            console.error("Redux dispatch failed:", error);
-        }
-    }, []);
-    */
+    const {execMe, updateMe} = UseRefreshReduxMe();
+
     const onChangeUserName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch({type: "userName", userName : e.target.value});
+        console.log(e.target.value)
+        dispatch({type: "userName", payload : e.target.value});
         if(!e.target.value){
             allowSubmit(dispatch, "Username cannot be empty", true);
         }
@@ -51,9 +51,17 @@ const Login : FC<ModalProps> = ({isOpen, onClickToggle}) => {
         };
     };
 
-    const onClickLogin = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
+    const onClickLogin = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
         e.preventDefault();
         onClickToggle(e);
+        const result = await execLogin({
+            variables: {
+                userName,
+                password
+            }
+        });
+        execMe();
+        updateMe();
     };
 
     const onClickCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{

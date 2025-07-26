@@ -3,11 +3,13 @@ import ThreadItem from "../../../models/ThreadItem";
 import ThreadResponse from "./ThreadResponse";
 
 interface ThreadResponseBuilderProps {
-    threadItems?: Array<ThreadItem>
+    threadItems?: Array<ThreadItem>,
+    readOnly: boolean
 }
 
 const ThreadResponseBuilder : FC<ThreadResponseBuilderProps> = ({
-    threadItems
+    threadItems,
+    readOnly
 }) => {
     const [responseElements, setResponseElements] = useState<JSX.Element | undefined>();
 
@@ -19,15 +21,18 @@ const ThreadResponseBuilder : FC<ThreadResponseBuilderProps> = ({
                     <li key = {`thr-${ti.id}`}>
                         <ThreadResponse
                         body={ti.body}
-                        userName = {ti.userName}
+                        userName = {ti.user?.userName}
                         lastModifiedOn={ti.createdOn}
-                        points = {ti.points}/>
+                        points = {ti.points}
+                        readOnly = {readOnly}
+                        userId = {ti?.user.id || "0"}
+                        threadItemId = {ti?.id || "0"}/>
                     </li>
                 );
             });
             setResponseElements(<ul>{thResponses}</ul>);
         }
-    }, [threadItems])
+    }, [threadItems, readOnly])
     return(
         <div className="thread-body-container">
             <strong style = {{marginBottom: "0.75em"}}>Response</strong>

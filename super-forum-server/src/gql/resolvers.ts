@@ -4,11 +4,13 @@ import { createThread, getThreadById, getThreadsByCategoryId, getThreadsLatest} 
 import { login, logout, me, register, UserResult } from "../repo/UserRepo";
 import { Thread } from "../repo/Thread";
 import { updateThreadPoint } from "../repo/ThreadPointRepo";
+import { updateThreadItemPoint } from "../repo/ThreadItemPointRepo";
 import GqlContext from "./GqlContext";
 import "express-session"
 import { User } from "../repo/User";
 import { ThreadCategory } from "../repo/ThreadCategory";
 import { getAllCategories } from "../repo/ThreadCategoryRepo";
+import { changePassword } from "../repo/UserRepo";
 const STANDARD_ERROR = "An error has occured";
 declare module "express-session"{
     interface SessionData{
@@ -261,11 +263,33 @@ const resolvers : IResolvers = {
                 throw ex;
             }
         },
-
+        updateThreadItemPoint : async(
+            _: any,
+            args: {
+                threadItemId: string,
+                increment: boolean,
+            },
+            context: GqlContext,
+        ) : Promise<String>=>{
+            let result = "";
+            try{
+                if(!context.req.session || !context.req.session?.userid){
+                    return "You must be logged in to set likes";
+                }
+                result = await updateThreadItemPoint(
+                    context.req.session!.userid,
+                    args.threadItemId,
+                    args.increment
+                );
+                return result;
+            }
+            catch(ex){
+                throw ex;
+            }
+        },
         updateThreadPoint : async(
             _: any,
             args: {
-                userId: string, 
                 threadId: string, 
                 increment: boolean
             },
@@ -275,11 +299,10 @@ const resolvers : IResolvers = {
             let result = "";
             try {
                 if (!context.req.session || !context.req.session.userid){
-                    console.log("Session userid is: ", context.req.sessionID)
                     return "You must be logged in to set likes"
                 }
                 result = await updateThreadPoint(
-                    args.userId,
+                    context.req.session!.userid,
                     args.threadId,
                     args.increment
                 );
@@ -289,7 +312,24 @@ const resolvers : IResolvers = {
                 throw ex;
             }
 
+        },
+        changePassword: async(
+            _: any,
+            args: {newPassword: string},
+            context: GqlContext,
+        ) : Promise<string>=>{
+            try{
+                if(!context.req.session || !context.req.session!.userid){
+                    return "You must sign in before you can change your password";
+                };
+                let result = await changePassword(context.req.session.userid, args.newPassword);
+                return result;
+            }
+            catch(ex){
+                throw ex;
+            }
         }
+
     }
 
 }

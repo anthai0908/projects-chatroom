@@ -37,6 +37,10 @@
     margin-top: 1em;
     margin-bottom: 1em;
 }
+.thread-header-container{
+    border-bottom: var(--input-border);
+    padding-bottom: 0.75em;
+}
 .thread-category-container {
     margin-top: 0.75em;
 }

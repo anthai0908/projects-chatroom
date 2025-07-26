@@ -2,15 +2,17 @@ import React, {FC} from "react";
 import RichEditor from "../../editor/RichTextEditor";
 
 interface ThreadBodyProps{
-    body?: string;
+    body?: string,
+    readOnly: boolean,
+
 }
 
-const ThreadBody: FC<ThreadBodyProps> = ({body}) => {
+const ThreadBody: FC<ThreadBodyProps> = ({body, readOnly}) => {
     return(
         <div className="thread-body-container">
             <strong>Body</strong>
             <div className = "thread-body-editor">
-                <RichEditor existingBody={body}/>
+                <RichEditor existingBody={body} readOnly = {readOnly}/>
             </div>
         </div>
     );

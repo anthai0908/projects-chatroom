@@ -81,7 +81,7 @@ const userNotFound = (userName: string) => {
 export const me = async (id: string) : Promise<UserResult> =>{
     const user = await AppDataSource.getRepository(User).findOne({
         where : {id: id},
-        relations : ["threads", "threads.threadItems"],
+        relations : ["threads", "threads.threadItems", "threadItems", "threadItems.thread"],
     });
     if(!user){
         return {
@@ -107,4 +107,23 @@ export const logout = async (userName: string) : Promise<string> => {
         return userNotFound(userName);
     }
     return "User logged out";
+}
+
+export const changePassword = async(id: string, newPassword: string) : Promise<string> =>{
+    const user = await AppDataSource.getRepository(User).findOne({
+        where : {
+            id: id,
+        }
+    });
+    if(!user){
+        return "User not found";
+    }
+    if(!user.confirmed){
+        return "User has not confirmed their registration email yet";
+    }
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password=hashedPassword ;
+    await AppDataSource.getRepository(User).save(user);
+    return "Password changed successfully";
 }

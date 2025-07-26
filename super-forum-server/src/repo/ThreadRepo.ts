@@ -4,6 +4,7 @@ import { User } from "./User";
 import { Thread} from "./Thread";
 import { ThreadCategory } from "./ThreadCategory";
 import { isThreadTitleValid, isThreadBodyValid } from "../common/validators/ThreadValidators";
+
 export const createThread = async (
     userid: string |null |undefined,
     categoryId: string,
@@ -73,7 +74,8 @@ export const getThreadById = async (
     const thread = await threadRepository.findOne({
         where: {
             id: id,
-        }
+        }, 
+        relations: ["user", "threadItems", "threadItems.user", "category" ]
     })
     if(!thread){
         return {
@@ -118,6 +120,7 @@ export const  getThreadsLatest = async () : Promise<QueryArrayResult<Thread>> =>
             const threadRepo = AppDataSource.getRepository(Thread);
             const threads = await threadRepo.createQueryBuilder("thread").leftJoinAndSelect("thread.category", "category")
                                                                          .leftJoinAndSelect("thread.threadItems", "threadItems")
+                                                                         .leftJoinAndSelect("thread.user", "user")
                                                                          .orderBy("thread.createdOn", "DESC")
                                                                          .take(10)
                                                                          .getMany();

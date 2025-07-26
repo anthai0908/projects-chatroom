@@ -5,16 +5,13 @@ import { getCategories } from "../../services/DataService";
 import {gql, useQuery} from "@apollo/client"
 import { Link } from "react-router-dom";
 import "./LeftMenu.css"
-const GetAllCategories = gql`
-    query getAllCategories{
-    getAllCategories{
-    id
-    name
-    }
-}
-`;
+import { useSelector } from "react-redux";
+import { Appstate } from "../../store/AppState";
+
 const LeftMenu = () => {
-    const {loading, error, data} = useQuery(GetAllCategories);
+    const categoriesState = useSelector((state: Appstate)=> {
+        return state.categories;
+    }) 
     const {width} = useWindowDimensions();
     const [categories, setCategories] = useState<JSX.Element>(
         <div>Left Menu</div>
@@ -22,26 +19,18 @@ const LeftMenu = () => {
    
 
     useEffect(()=>{
-        if(loading){
-            setCategories(<span>Loading...</span>);
+        if (categoriesState){
+            const cats = categoriesState.map((cat: any) => {
+                return <li className="category-list" key = {cat.id}>
+                    <Link to={`/categoryThreads/${cat.id}`}>
+                        {cat.name}
+                    </Link>
+                </li>
+            });
+            setCategories(<ul className="category">{cats}</ul>);
         }
-        else if(error){
-            setCategories(<span>Error occurred loading categories...</span>);
-        }
-        else{
-            if (data && data.getAllCategories){
-                console.log("data is ",data.getAllCategories)
-            const cats = data.getAllCategories.map((cat: any) => {
-                    return <li className="category-list" key = {cat.id}>
-                        <Link to={`/categoryThreads/${cat.id}`}>
-                            {cat.name}
-                        </Link>
-                    </li>
-                });
-                setCategories(<ul className="category">{cats}</ul>);
-            }
-        }
-    }, [data]);
+        
+    }, [categoriesState]);
     if (width < 768){
         return null;
     }

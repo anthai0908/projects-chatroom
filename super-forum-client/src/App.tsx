@@ -12,17 +12,37 @@ import Thread from './components/routes/thread/Thread';
 import { UserProfileSetType } from './store/user/Reducer';
 import UserProfile from './components/routes/userProfile/UserProfile';
 import { useDispatch } from 'react-redux';
+import { gql, useQuery } from '@apollo/client';
+import { ThreadCategoriesType } from './store/categories/Reducer';
+import UseRefreshReduxMe from './hooks/useRefreshReduxMe';
+
+const GetAllCategories = gql`
+  query getAllCategories{
+    getAllCategories {
+      id
+      name
+    }
+  }
+` 
 function App() {
+  const {data: categoriesData} = useQuery(GetAllCategories);
+  const {execMe, updateMe} = UseRefreshReduxMe();
   const dispatch = useDispatch();
   useEffect(() =>{
-    dispatch({
-      type: UserProfileSetType,
-      payload: {
-        id: 1, 
-        username: "testUser"
-      }
-    })
-  }, [dispatch])
+    execMe();
+    
+  }, [execMe]);
+  useEffect(()=>{
+    updateMe();
+  }, [updateMe])
+  useEffect(()=>{
+    if (categoriesData && categoriesData.getAllCategories){
+      dispatch({
+        type: ThreadCategoriesType,
+        payload: categoriesData.getAllCategories,
+      })
+    }
+  }, [dispatch, categoriesData])
   const RenderUserProfile = (props:any) => <UserProfile {...props}/>;
   const RenderHome = (props: any) => <Home {...props} />;
   const RenderThread = (props: any) => <Thread {...props}/>
