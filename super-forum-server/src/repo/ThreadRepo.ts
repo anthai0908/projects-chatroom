@@ -63,7 +63,7 @@ export const createThread = async (
         };
     }
     return {
-        messages: ["Thread created successfully."]
+        messages: [thread.id]
     }
 }
 

@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useReducer} from "react";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import "./Thread.css";
 import ThreadHeader from "./ThreadHeader";
 import ThreadCategory from "./ThreadCategory";
@@ -14,6 +14,11 @@ import Category from "../../../models/Category";
 import { useSelector } from "react-redux";
 import { Appstate } from "../../../store/AppState";
 import { gql, useLazyQuery } from "@apollo/client";
+import ThreadPointsInline from "../../points/ThreadPointsInline";
+import { useWindowDimensions } from "../../../hooks/useWindowDimensions";
+import { useMutation } from "@apollo/client";
+import { Node } from "slate";
+import { getTextFromNodes } from "../../editor/RichTextEditor";
 const GetThreadById = gql`
     query GetThreadById($id: ID!){
         getThreadById(id: $id){
@@ -47,6 +52,18 @@ const GetThreadById = gql`
         }
     }
 `
+const CreateThread = gql`
+    mutation createThread($userId: ID!, $categoryId: ID!, $title: String!, $body: String!){
+        createThread(
+            userId: $userId
+            categoryId: $categoryId
+            title: $title
+            body: $body
+        ){
+            messages    
+        }
+    }
+`;
 const threadReducer = (state: any, action: any)=>{
     switch (action.type){
         case "userId":
@@ -65,6 +82,7 @@ const threadReducer = (state: any, action: any)=>{
 }
 
 const Thread = ()=> {
+    const {width} = useWindowDimensions();
     const [execGetThreadById, {data: threadData}] = useLazyQuery(GetThreadById,{
         fetchPolicy: "no-cache",
     });
@@ -83,7 +101,7 @@ const Thread = ()=> {
     const user = useSelector((state: Appstate)=> {
         return state.user;
     })
-    const [{userId, category, title, bodyNode }, threadReduceDispatch] = useReducer(threadReducer, {
+    const [{userId, category, title, body, bodyNode }, threadReduceDispatch] = useReducer(threadReducer, {
         userId: user? user.id : "0",
         category: undefined, 
         title: "",
@@ -91,8 +109,11 @@ const Thread = ()=> {
         bodyNode: undefined
 
 
-
+    
     })
+    const [postMsg, setPostMsg] = useState("");
+    const [execCreateThread] = useMutation(CreateThread);
+    const navigate = useNavigate();
     const receiveSelectedCategory = (cat: Category) =>{
         threadReduceDispatch({
             type: "category",
@@ -108,7 +129,12 @@ const Thread = ()=> {
             })
         }
     }, [id, execGetThreadById]);
-
+    useEffect(()=>{
+        threadReduceDispatch({
+            type: "userId",
+            payload: user? user.id : "0"
+        })
+    }, [user]);
     useEffect(()=>{
         if (threadData && threadData.getThreadById){
             console.log("thread is", threadData.getThreadById)
@@ -119,31 +145,99 @@ const Thread = ()=> {
             setThread(undefined);
             setReadOnly(false);
         }
-    })
+    }, [threadData]);
+    const receiveTitle = (updatedTitle: string) => {
+        threadReduceDispatch({
+            type: "title", 
+            payload: updatedTitle
+        })
+    }
+
+    const receiveBody = (body: Node[])=>{
+        threadReduceDispatch({
+            type: "bodyNode",
+            payload: body
+        });
+        threadReduceDispatch({
+            type: "body",
+            payload: getTextFromNodes(body)
+        })
+    }
+    const onClickPost = async(e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
+        e.preventDefault();
+        if(!userId || userId === "0"){
+            setPostMsg("You must be logged in before you can post.");
+        }
+        else if(!category){
+            setPostMsg("Please select a category for your post");
+        }
+        else if(!title){
+            setPostMsg("Please enter a title");
+        }
+        else if(!bodyNode){
+            setPostMsg("Please select a category for your post");
+        }
+        else{
+            setPostMsg("");
+            const newThread = {
+                userId,
+                categoryId: category?.id,
+                title,
+                body: JSON.stringify(bodyNode), /// check whether to remove or not
+            };
+            const {data: createThreadMsg} = await execCreateThread({
+            variables: newThread,
+            });
+            if(
+                createThreadMsg.createThread && createThreadMsg.createThread.messages && !isNaN(createThreadMsg.createThread.messages[0])){
+                    setPostMsg("Thread posted successfully.");
+                    navigate(`/thread/${createThreadMsg.createThread.messages[0]}`);
+
+                }
+            else {
+                setPostMsg(createThreadMsg.createThread.messages[0]);
+            } 
+        };
+        
+    }
     return (
         <div className="screen-root-container">
             <div className="thread-nav-container">
                 <Nav/>
             </div>
             <div className="thread-content-container">
-                <div className="thread-content-post-container">
-                    <ThreadHeader 
-                    userName={thread?.user.userName} 
-                    lastModifiedOn={thread?thread.lastModifiedOn: new Date()}
-                    title = {thread?.title}/>
+                    <div className="thread-content-post-container">
+                        {width <=768 && thread ? (
+                            <ThreadPointsInline threadId = {thread?.id} points={Number(thread?.points) || 0} refreshThread = {refreshThread} allowUpdatePoints = {true}/>
+                        ) : null}
+                        
 
-                    <ThreadCategory
-                    category = {thread?.category}
-                    sendOutSelectedCategory = {receiveSelectedCategory}/>
+                        <ThreadHeader 
+                        userName={thread?.user.userName} 
+                        lastModifiedOn={thread?thread.lastModifiedOn: new Date()}
+                        title = {thread?.title}/>
 
-                    <ThreadTitle title = {thread?.title}/>
-                    <ThreadBody body = {thread?.body} readOnly = {readOnly}/>
-               </div>
+                        <ThreadCategory
+                        category = {thread?.category}
+                        sendOutSelectedCategory = {receiveSelectedCategory}/>
+
+                        <ThreadTitle title = {title || thread?.title || ""} readOnly = {thread? readOnly : false} sendOutTitle={receiveTitle}/>
+                        <ThreadBody body = {thread?.body} readOnly = {readOnly} sendOutBody={receiveBody}/>
+                        {thread?null : (
+                            <>
+                                <div style={{marginTop: ".5em"}}>
+                                    <button className= "action-btn" onClick={onClickPost}>
+                                        Post
+                                    </button>
+                                </div>
+                                <strong>{postMsg}</strong>
+                            </>
+                        )}
+                    </div>
                 <div className="thread-content-points-container">
                     <ThreadPointsBar
                     points = {thread?.points || 0}
                     responseCount = {thread && thread.threadItems && thread.threadItems.length}
-                    userId= {thread?.user.id || "0"}
                     threadId={thread?.id || "0"}
                     allowUpdatePoints = {true}
                     refreshThread={refreshThread}/>

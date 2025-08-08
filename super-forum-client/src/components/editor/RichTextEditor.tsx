@@ -6,6 +6,7 @@ import {
     Transforms,
     createEditor,
     BaseEditor,
+    Node,
     EditorMarks,
   } from 'slate';
 import isHotkey from "is-hotkey";
@@ -16,6 +17,9 @@ import "./RichTextEditor.css";
 import { faBold, faCode, faHeading, faItalic, faList, faListOl, faListUl, faQuoteRight, faUnderline } from "@fortawesome/free-solid-svg-icons";
 import { split } from "lodash";
 import { RenderElementProps, RenderLeafProps } from "slate-react";
+export const getTextFromNodes = (nodes: Node[]) => {
+  return nodes.map((n: Node)=> Node.string(n)?? "").join("\n");
+}
 const HOTKEYS : {[keyName: string] : string} = {
     "mod+b": "bold",
     "mod+i": "italic",
@@ -56,7 +60,7 @@ declare module "slate" {
 const initialValue: Descendant[] = [
     {
       type: "paragraph", // No more "Property 'type' does not exist" error!
-      children: [{ text: "Hello, Slate!" }],
+      children: [{ text: "" }],
     },
   ];
   
@@ -65,22 +69,50 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
 class RichEditorProps {
   existingBody?: string;
   readOnly?: boolean;
+  sendOutBody?: (body: Node[]) => void;
 }
 
-const RichEditor: FC<RichEditorProps> = ({ existingBody, readOnly = false}) => {
-  const [value, setValue] = useState<Descendant[]>(initialValue);
+const RichEditor: FC<RichEditorProps> = ({ existingBody, readOnly = false, sendOutBody}) => {
+  const [value, setValue] = useState<Descendant[]>([
+  { type: 'paragraph', children: [{ text: '' }] }
+]);
   const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
   const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, []);
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   console.log(existingBody);
-
+  useEffect(() => {
+  if (existingBody) {
+    try {
+      const parsed = JSON.parse(existingBody);
+      if (Array.isArray(parsed)) {
+        setValue(parsed);
+      } else {
+        throw new Error("Not an array");
+      }
+    } catch (err) {
+      console.warn("Invalid Slate JSON format. Using fallback body instead.", existingBody);
+      const fallbackValue = [
+        {
+          type: "paragraph",
+          children: [{ text: existingBody }],
+        },
+      ];
+      setValue(fallbackValue);
+      console.log("Using fallback value:", fallbackValue);
+    }
+  }
+}, [existingBody]);
+  useEffect(() => {
+  console.log("Current Slate value:", value);
+}, [value]);
   const onChangeEditorValue = (newValue: Descendant[]) => {
     setValue(newValue);
+    sendOutBody && sendOutBody(newValue);
   };
 
   return (
-      <Slate editor={editor} initialValue={value} onValueChange={onChangeEditorValue} key = {existingBody ||"default"}>
-          <Toolbar>
+      <Slate editor={editor} initialValue={value} onValueChange={onChangeEditorValue} key = {JSON.stringify(value)}>
+          {readOnly? null : <Toolbar>
               <MarkButton format = "bold" icon = "bold"/>
               <MarkButton format ="italic" icon = "italic"/>
               <MarkButton format ="underline" icon = "underlined"/>
@@ -89,7 +121,7 @@ const RichEditor: FC<RichEditorProps> = ({ existingBody, readOnly = false}) => {
               <BlockButton format = "block-quote" icon ="in_quotes"/>
               <BlockButton format = "numbered-list" icon ="list_numbered"/>
               <BlockButton format = "bulleted-list" icon ="list_bulleted"/>
-          </Toolbar>
+          </Toolbar>}
           <Editable
           className="editor"
           renderElement={renderElement}

@@ -50,7 +50,7 @@ function App() {
     <Routes>
       <Route path="/" element={<RenderHome/>} />
       <Route path ="/categoryThreads/:categoryId" element ={<RenderHome/>}/>
-      <Route path = "/thread/:id" element = {<RenderThread/>}/>
+      <Route path = "/thread/:id?" element = {<RenderThread/>}/>
       <Route path = "/userprofile/:id" element = {<RenderUserProfile/>}/>
     </Routes>
   );

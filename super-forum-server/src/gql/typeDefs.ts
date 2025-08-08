@@ -90,7 +90,7 @@ const typeDefs = gql`
             password: String!
         ) : String!
         updateThreadPoint( threadId: ID!,  increment: Boolean!) : String!
-        updateThreadItemPoint( threadId: ID!, increment: Boolean!) : String!
+        updateThreadItemPoint( threadItemId: ID!, increment: Boolean!) : String!
         changePassword(newPassword: String!) : String!
         }
 

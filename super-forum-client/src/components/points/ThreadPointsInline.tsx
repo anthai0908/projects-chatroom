@@ -7,16 +7,14 @@ import { faChevronDown, faChevronUp, faHeart } from "@fortawesome/free-solid-svg
 import { useWindowDimensions } from "../../hooks/useWindowDimensions";
 import "./ThreadPointsInline.css"
 import { gql, useMutation } from "@apollo/client";
-
+import useUpdateThreadPoint from "../../hooks/useUpdateThreadPoint";
 const UpdateThreadItemPoint = gql`
     mutation UpdateThreadItemPoint(
-        $userId: ID!
         $threadItemId: ID!
         $increment: Boolean!
     ){
         updateThreadItemPoint(
-            userId: $userId
-            threadItemID: $threadItemId
+            threadItemId: $threadItemId
             increment: $increment
         )    
     }
@@ -24,7 +22,6 @@ const UpdateThreadItemPoint = gql`
 
 class ThreadPointsInlineProps{
     points : number = 0;
-    userId?: string;
     threadId?: string;
     threadItemId?: string;
     allowUpdatePoints?: boolean ;
@@ -33,20 +30,19 @@ class ThreadPointsInlineProps{
 }
 export const ThreadPointsInline : FC<ThreadPointsInlineProps> = ({
     points = 0,
-    userId,
     threadId,
     threadItemId,
     allowUpdatePoints =true,
     refreshThread, 
 }) => {
         const [execThreadItemPoint] = useMutation(UpdateThreadItemPoint);
+        const {onClickIncThreadPoint, onClickDecThreadPoint} = useUpdateThreadPoint(refreshThread, threadId);
         const onClickIncThreadItemPoint = async (
             e: React.MouseEvent<SVGSVGElement, MouseEvent>
         ) =>{
             e.preventDefault();
             await execThreadItemPoint({
                 variables: {
-                    userId,
                     threadItemId,
                     increment: true,
                 }
@@ -60,7 +56,6 @@ export const ThreadPointsInline : FC<ThreadPointsInlineProps> = ({
             e.preventDefault();
             await execThreadItemPoint({
                 variables:{
-                    userId,
                     threadItemId,
                     increment: false,
                 }
@@ -76,7 +71,7 @@ export const ThreadPointsInline : FC<ThreadPointsInlineProps> = ({
                     <FontAwesomeIcon 
                         icon = {faChevronUp}
                         className = "point-icon"
-                        onClick={onClickIncThreadItemPoint}
+                        onClick={threadId? onClickIncThreadPoint : onClickIncThreadItemPoint}
                     />
                 </div>
                 {points}
@@ -87,7 +82,7 @@ export const ThreadPointsInline : FC<ThreadPointsInlineProps> = ({
                     <FontAwesomeIcon
                     icon = {faChevronDown}
                     className="point-icon"
-                    onClick = {onClickDecThreadItemPoint}
+                    onClick = {threadId? onClickDecThreadPoint : onClickDecThreadItemPoint}
                     />
                 </div>
                 <div className="threadpointsinline-item-btn">

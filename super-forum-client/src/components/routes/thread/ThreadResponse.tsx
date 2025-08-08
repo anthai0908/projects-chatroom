@@ -30,7 +30,7 @@ const ThreadResponse : FC <ThreadResponseProps> = ({
                 <UserNameAndTime userName= {userName} lastModifiedOn={lastModifiedOn}/>
                 {threadItemId}
                 <span style={{marginLeft: "1em"}}>
-                    <ThreadPointsInline points={points} userId= {userId} threadItemId = {threadItemId} />
+                    <ThreadPointsInline points={points} threadItemId = {threadItemId} />
                 </span>
             </div>
             <div className = "thread-body-editor">

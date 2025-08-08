@@ -4,15 +4,13 @@ import { useWindowDimensions } from "../../hooks/useWindowDimensions";
 import React, {FC} from "react";
 import { faHeart, faReplyAll, faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import {gql, useMutation} from "@apollo/client";
-
+import useUpdateThreadPoint from "../../hooks/useUpdateThreadPoint";
 const UpdateThreadPoint = gql`
     mutation UpdateThreadPoint(
-        $userId: ID!
         $threadId: ID!
         $increment: Boolean!
     ){
         updateThreadPoint(
-            userId: $userId
             threadId: $threadId
             increment: $increment
         )
@@ -21,7 +19,6 @@ const UpdateThreadPoint = gql`
 export class ThreadPointsBarProps {
     points?: number = 0;
     responseCount?: number;
-    userId?: string;
     threadId?: string;
     allowUpdatePoints?: boolean = false;
     refreshThread?: ()=> void;
@@ -30,38 +27,14 @@ export class ThreadPointsBarProps {
 const ThreadPointsBar : FC<ThreadPointsBarProps> = ({
     points = 0,
     responseCount,
-    userId,
     threadId,
     allowUpdatePoints = true,
     refreshThread
 
 }) => {
     const {width} = useWindowDimensions();
-    console.log("User Id in thread points bar is: ", userId)
     const [execUpdateThreadPoint] = useMutation(UpdateThreadPoint);
-    const onClickIncThreadPoint = (e: React.MouseEvent<SVGSVGElement, MouseEvent>)=>{
-        e.preventDefault();
-        execUpdateThreadPoint({
-            variables : {
-                userId,
-                threadId,
-                increment: true
-            }
-        });
-        refreshThread && refreshThread();
-    };
-
-    const onClickDecThreadPoint = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) =>{
-        e.preventDefault();
-        execUpdateThreadPoint({
-            variables: {
-                userId,
-                threadId,
-                increment: false
-            }
-        });
-        refreshThread && refreshThread();
-    }
+    const {onClickIncThreadPoint, onClickDecThreadPoint} = useUpdateThreadPoint(refreshThread, threadId);
     if(width > 768) {
         return (
             <div className ="threadcard-points">

@@ -8,6 +8,9 @@ export const updateThreadPoint = async (
     threadId: string,
     increment: boolean,
 ) : Promise<string> => {
+    if(!userId || userId === "0"){
+        return "User is not authenticated";
+    }
     let message = "Failed to increment thread point";
     const threadRepo = AppDataSource.getRepository(Thread);
     const thread = await threadRepo.findOne({
