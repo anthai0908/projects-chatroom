@@ -5,7 +5,6 @@ import "./UserProfile.css";
 import Nav from "../../areas/Nav";
 import { UseSelector } from "react-redux";
 import { Appstate } from "../../../store/AppState";
-import { getUserThreads } from "../../../services/DataService";
 import { Link } from "react-router-dom";
 import ThreadItem from "../../../models/ThreadItem";
 import { useSelector } from "react-redux";
@@ -33,6 +32,37 @@ const UserProfile = () => {
     const [thread, setThreads] = useState<JSX.Element | undefined>();
     const [threadItems, setThreadItems] = useState<JSX.Element | undefined>();
     const [execChangePassword] = useMutation(changePassword);
+    function getTextFromNodes(nodes: any): string {
+        if (!nodes) return '';
+        if (Array.isArray(nodes)) return nodes.map(getTextFromNodes).join('');
+        if (typeof nodes === 'object') {
+          if (typeof nodes.text === 'string') return nodes.text;
+          if (Array.isArray(nodes.children)) return nodes.children.map(getTextFromNodes).join('');
+        }
+        return '';
+    }
+
+function safeParseMaybeSlate(input: unknown): any | null {
+  if (typeof input !== 'string') return input as any;
+  const s = input.trim();
+
+  try { return JSON.parse(s); } catch {}
+
+  try {
+    const once = JSON.parse(s);
+    if (typeof once === 'string') {
+      return JSON.parse(once);
+    }
+  } catch {}
+
+  return null;
+}
+
+function extractBodyText(body: unknown): string {
+  const parsed = safeParseMaybeSlate(body);
+  if (parsed == null) return String(body ?? '');
+  return getTextFromNodes(parsed);
+}
     useEffect(()=>{
         console.log("user", user);
         if(user){
@@ -50,16 +80,20 @@ const UserProfile = () => {
                 );
             });
             setThreads(!user.threads || user.threads.length ===0 ? undefined : <ul>{threadList}</ul>);
-            const threadItemList = user.threadItems?.map((ti: ThreadItem) =>{
-                return(
-                    <li key = {`user-th-${ti.threadId}`}>
-                        <Link to = {`/thread/${ti.threadId}`} className = "userporfile-link">
-                        {ti.body.length < 40? ti.body : ti.body.substring(0, 40) + "..."};
-                        </Link>
+                const threadItemList = user.threadItems?.map((ti: ThreadItem) => {
+                  const bodyText = extractBodyText(ti.body);
+                  const preview = bodyText.length <= 40 ? bodyText : bodyText.slice(0, 40) + '…';
+
+                  return (
+                    <li key={`user-th-${ti.thread.id}`}>
+                      <Link to={`/thread/${ti.thread.id}`} className="userporfile-link">
+                        {preview}
+                      </Link>
                     </li>
-                )
-            });
-            setThreadItems(<ul>{threadItemList}</ul>);
+                  );
+                });
+              
+                setThreadItems(<ul>{threadItemList}</ul>);
         }
     }, [user])
     const onClickChangePassword = async(

@@ -5,15 +5,18 @@ import ThreadResponse from "./ThreadResponse";
 interface ThreadResponseBuilderProps {
     threadItems?: Array<ThreadItem>,
     readOnly: boolean
+    refreshThread: ()=>void;
 }
 
 const ThreadResponseBuilder : FC<ThreadResponseBuilderProps> = ({
     threadItems,
-    readOnly
+    readOnly, 
+    refreshThread
 }) => {
     const [responseElements, setResponseElements] = useState<JSX.Element | undefined>();
 
     useEffect(()=>{
+        console.log("threadItems is", threadItems)
         if (threadItems) {
             const thResponses = threadItems.map((ti) =>{
                 console.log(ti.body)
@@ -25,8 +28,9 @@ const ThreadResponseBuilder : FC<ThreadResponseBuilderProps> = ({
                         lastModifiedOn={ti.createdOn}
                         points = {ti.points}
                         readOnly = {readOnly}
-                        userId = {ti?.user.id || "0"}
-                        threadItemId = {ti?.id || "0"}/>
+                        threadItemId = {ti?.id || "0"}
+                        threadId={ti.thread.id}
+                        refreshThread={refreshThread}/>
                     </li>
                 );
             });

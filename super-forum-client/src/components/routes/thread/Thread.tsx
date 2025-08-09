@@ -5,7 +5,7 @@ import ThreadHeader from "./ThreadHeader";
 import ThreadCategory from "./ThreadCategory";
 import ThreadTitle from "./ThreadTitle";
 import ThreadModel from "../../../models/Thread";
-import { getThreadById } from "../../../services/DataService";
+
 import Nav from "../../areas/Nav";
 import ThreadBody from "./ThreadBody";
 import ThreadResponseBuilder from "./ThreadResponseBuilder";
@@ -19,6 +19,7 @@ import { useWindowDimensions } from "../../../hooks/useWindowDimensions";
 import { useMutation } from "@apollo/client";
 import { Node } from "slate";
 import { getTextFromNodes } from "../../editor/RichTextEditor";
+import ThreadResponse from "./ThreadResponse";
 const GetThreadById = gql`
     query GetThreadById($id: ID!){
         getThreadById(id: $id){
@@ -46,6 +47,9 @@ const GetThreadById = gql`
                     user {
                         id
                         userName
+                    }
+                    thread{
+                        id
                     }
                 }
             }
@@ -243,10 +247,26 @@ const Thread = ()=> {
                     refreshThread={refreshThread}/>
                 </div>
             </div>
-            
+            {thread? (
+                <div className="thread-content-response-container">
+                    <hr className="thread-section-divider"/>
+                    <div style = {{marginBottom : "0.5em"}}>
+                        <strong> Post Response</strong>
+                    </div>
+                    <ThreadResponse 
+                        body=""
+                        userName={user?.userName}
+                        lastModifiedOn={new Date()}
+                        points = {0}
+                        readOnly = {false}
+                        threadItemId={"0"}
+                        threadId = {thread.id}
+                        refreshThread={refreshThread}/>
+                </div>
+            ) : null}
             <div className="thread-content-response-container">
                 <hr className="thread-section-divider"></hr>
-                <ThreadResponseBuilder threadItems= {thread?.threadItems} readOnly = {readOnly}/>
+                <ThreadResponseBuilder threadItems= {thread?.threadItems} readOnly = {readOnly} refreshThread={refreshThread}/>
             </div>
             
         </div>

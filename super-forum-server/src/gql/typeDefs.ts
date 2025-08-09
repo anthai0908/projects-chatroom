@@ -62,12 +62,20 @@ const typeDefs = gql`
         lastModifiedBy: String!
         lastModifiedOn: Date! 
         }
+    type CategoryThread {
+        threadId: ID!
+        categoryId: ID!
+        categoryName: String!
+        title: String!
+        titleCreatedOn: Date!
+    }
     type Query {
         getThreadById(id: ID!): ThreadResult
         getThreadsByCategoryId(categoryId: ID!): ThreadArrayResult
         getThreadsLatest: ThreadArrayResult!
         getAllCategories: [ThreadCategory!]
         me: UserResult!
+        getTopCategoryThread: [CategoryThread!]
         }
     
     type Mutation {
@@ -76,7 +84,11 @@ const typeDefs = gql`
             categoryId: ID!
             title: String!
             body: String!) : EntityResult
-        
+        createThreadItem (
+            userId: ID!,
+            threadId: ID!,
+            body: String!
+        ) : EntityResult
         login(
             userName: String!,
             password: String!) : String!

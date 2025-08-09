@@ -11,6 +11,10 @@ import { User } from "../repo/User";
 import { ThreadCategory } from "../repo/ThreadCategory";
 import { getAllCategories } from "../repo/ThreadCategoryRepo";
 import { changePassword } from "../repo/UserRepo";
+import { ThreadItem } from "../repo/ThreadItem";
+import { createThreadItem } from "../repo/ThreadItemRepo";
+import CategoryThread from "../repo/CategoryThread";
+import { getTopCategoryThread } from "../repo/CategoryThreadRepo";
 const STANDARD_ERROR = "An error has occured";
 declare module "express-session"{
     interface SessionData{
@@ -160,9 +164,20 @@ const resolvers : IResolvers = {
             catch(ex){
                     throw(ex);
                 }
-        }
+        },
+            getTopCategoryThread: async (
+              _: any,
+                    
+            ): Promise<Array<CategoryThread>> => {
+              try {
+                return await getTopCategoryThread();
+              } catch (ex) {
+                throw ex;
+              }
+            },
             
     },
+    
     Mutation: {
         register : async (
             _: any,
@@ -262,6 +277,25 @@ const resolvers : IResolvers = {
             catch(ex){
                 throw ex;
             }
+        },
+        createThreadItem : async(
+            _: any,
+            args: {userId: string, threadId: string, body: string},
+        ) : Promise<EntityResult> =>{
+            let result : QueryOneResult<ThreadItem>;
+            try{
+                result = await createThreadItem(
+                args.body, args.userId, args.threadId
+                )
+                return {
+                    messages: result.messages? result.messages : ["An error has occurred"],
+                }
+                
+            }
+            catch (ex){
+                    console.log(ex);
+                    throw (ex);
+                }
         },
         updateThreadItemPoint : async(
             _: any,
