@@ -32,7 +32,7 @@ const RightMenu = () => {
             console.log("Top elements: ", {TopElemenst})
         }
 
-    }, [])
+    }, [categoryThreadData])
     if(width < 768){
         return null;
     }
