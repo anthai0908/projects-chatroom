@@ -1,0 +1,9 @@
+DO $$
+BEGIN
+   IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'replicator') THEN
+      ALTER ROLE replicator WITH REPLICATION LOGIN PASSWORD '123456';
+   ELSE
+      CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '123456';
+   END IF;
+END
+$$;

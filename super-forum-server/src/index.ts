@@ -29,9 +29,18 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (origin) {
+        // Allow whatever origin the browser is sending
+        callback(null, origin);
+      } else {
+        // e.g. server-to-server, curl
+        callback(null, true);
+      }
+    },
   })
-)
+);
+
 const router = express.Router();
 await AppDataSource.initialize();
 console.log("Successfully connected to database")

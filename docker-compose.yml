@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  server:
+    build: ./super-forum-server
+    container_name: server
+    expose:
+      - "8888"
+    env_file:
+      - ./super-forum-server/.env
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      postgres-replica:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres-primary:
+    image: postgres:14
+    container_name: postgres-primary
+    environment:
+      POSTGRES_USER: superforumsvc
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: SuperForum
+    volumes:
+      - pgprimary:/var/lib/postgresql/data
+      - ./superforum_dump.sql:/docker-entrypoint-initdb.d/superforum_dump.sql:ro
+      - ./init-replication.sql:/docker-entrypoint-initdb.d/init-replication.sql:ro
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: >
+      postgres -c config_file=/etc/postgresql/postgresql.conf
+               -c hba_file=/etc/postgresql/pg_hba.conf
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superforumsvc -d SuperForum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-replica:
+    image: postgres:14
+    container_name: postgres-replica
+    volumes:
+      - pgreplica:/var/lib/postgresql/data
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    expose:
+      - "5432"
+    command: >
+      bash -c "
+        until pg_isready -h postgres-primary -U replicator; do
+          echo 'Waiting for primary to be ready...';
+          sleep 2;
+        done &&
+        rm -rf /var/lib/postgresql/data/* &&
+        PGPASSWORD=123456 pg_basebackup -h postgres-primary -D /var/lib/postgresql/data -U replicator -Fp -Xs -P -R &&
+        exec docker-entrypoint.sh postgres
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superforumsvc -d SuperForum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    command: redis-server --requirepass foobared --appendonly yes
+    volumes:
+      - redisdata:/data
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "foobared", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  client:
+    build: ./super-forum-client
+    container_name: client
+    expose:
+      - "80"
+    depends_on:
+      server:
+        condition: service_started   # server has no healthcheck, so just wait until it starts
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      client:
+        condition: service_started   # client has no healthcheck
+      server:
+        condition: service_started   # server has no healthcheck
+
+volumes:
+  pgprimary:
+  pgreplica:
+  redisdata:
