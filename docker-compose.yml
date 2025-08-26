@@ -1,9 +1,7 @@
-version: "3.9"
 
 services:
   server:
     build: ./super-forum-server
-    container_name: server
     expose:
       - "8888"
     env_file:
@@ -80,27 +78,14 @@ services:
       timeout: 5s
       retries: 5
 
-  client:
-    build: ./super-forum-client
-    container_name: client
-    expose:
-      - "80"
-    depends_on:
-      server:
-        condition: service_started   # server has no healthcheck, so just wait until it starts
-
   nginx:
-    image: nginx:latest
+    build: ./super-forum-client    # builds React + nginx in one
     container_name: nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      client:
-        condition: service_started   # client has no healthcheck
       server:
-        condition: service_started   # server has no healthcheck
+        condition: service_started
 
 volumes:
   pgprimary:
